@@ -1,4 +1,7 @@
-## Link Deletion POST 
+# Admin Moderation Flows
+
+## Link Deletion (POST)
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -33,10 +36,10 @@ sequenceDiagram
         BusinessLogic-->>Handler: Deletion success
         Handler-->>Admin: 200 OK / 204 No Content
     end
-
-
 ```
-## SOFT DELETE , BAN  TYPE DELETE 
+
+## GET USER LIST (GET)
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -49,7 +52,7 @@ sequenceDiagram
     participant Repository
     participant DB
 
-    Admin->>Router: Request delete user
+    Admin->>Router: Request delete/ban user
     Router->>AuthMiddleware: Authenticate request
     AuthMiddleware-->>Router: Authenticated context
     Router->>AuthorizationMiddleware: Check admin permission
@@ -62,7 +65,7 @@ sequenceDiagram
         Handler->>Handler: Validate path/input
         Handler->>BusinessLogic: Pass delete request
 
-        BusinessLogic->>BusinessLogic: Apply deletion rules
+        BusinessLogic->>BusinessLogic: Apply deletion/ban rules
         BusinessLogic->>Repository: Delete or soft-delete target user
         Repository->>DB: Persist deletion state
         DB-->>Repository: Done
@@ -71,11 +74,11 @@ sequenceDiagram
         BusinessLogic-->>Handler: Deletion success
         Handler-->>Admin: 200 OK / 204 No Content
     end
-``` 
+```
+
+## GET Link List + Metadata (GET)
 
 
-
-## Getting the User Lists  TYPE GET 
 ```mermaid
 sequenceDiagram
     autonumber
@@ -114,45 +117,6 @@ sequenceDiagram
         BusinessLogic-->>Handler: List result + pagination metadata
         Handler-->>Admin: 200 OK
     end
-```
-## Getting the link lists plus metadata TYPE GET 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as Admin Client
-    participant Router
-    participant AuthMiddleware as Auth Middleware
-    participant AuthorizationMiddleware as Authorization Middleware
-    participant Handler
-    participant BusinessLogic as Business Logic
-    participant Repository
-    participant DB
-
-    Admin->>Router: Request users list (with pagination)
-    Router->>AuthMiddleware: Authenticate request
-    AuthMiddleware-->>Router: Authenticated context
-    Router->>AuthorizationMiddleware: Check admin permission
-
-    alt Not authorized
-        AuthorizationMiddleware-->>Admin: 403 Forbidden
-    else Authorized
-        AuthorizationMiddleware-->>Router: Permission granted
-        Router->>Handler: Route request
-        Handler->>Handler: Validate query params
-        Handler->>BusinessLogic: Pass pagination/filter input
-
-        BusinessLogic->>Repository: Fetch paginated users
-        Repository->>DB: Query paginated user rows
-        DB-->>Repository: User rows
-        Repository-->>BusinessLogic: Items
-
-        BusinessLogic->>Repository: Fetch total count
-        Repository->>DB: Query total count
-        DB-->>Repository: Count
-        Repository-->>BusinessLogic: Total
-
-        BusinessLogic-->>Handler: List result + pagination metadata
-        Handler-->>Admin: 200 OK
-    end
-```
-
+ ```
+ 
+ 
