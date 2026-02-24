@@ -34,6 +34,7 @@ sequenceDiagram
 ```
 
 ## Authentication flow TYPE POST 
+```mermaid
 sequenceDiagram
     autonumber
     actor Client
@@ -68,7 +69,7 @@ sequenceDiagram
 ```
 
 ## revocation flow TYPE POST  
-
+```mermaid
 sequenceDiagram
     autonumber
     actor Client
@@ -95,7 +96,7 @@ sequenceDiagram
 
 ## Logout flow  TYPE POST 
 
-```
+```mermaid
 sequenceDiagram
     autonumber
     actor Client
