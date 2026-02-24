@@ -1,5 +1,5 @@
 ## Link Deletion POST 
-```
+```mermaid
 sequenceDiagram
     autonumber
     actor Admin as Admin Client
@@ -37,7 +37,7 @@ sequenceDiagram
 
 ```
 ## SOFT DELETE , BAN  TYPE DELETE 
-``` 
+```mermaid
 sequenceDiagram
     autonumber
     actor Admin as Admin Client
@@ -76,7 +76,7 @@ sequenceDiagram
 
 
 ## Getting the User Lists  TYPE GET 
-```
+```mermaid
 sequenceDiagram
     autonumber
     actor Admin as Admin Client
@@ -116,7 +116,7 @@ sequenceDiagram
     end
 ```
 ## Getting the link lists plus metadata TYPE GET 
-```
+```mermaid
 sequenceDiagram
     autonumber
     actor Admin as Admin Client
