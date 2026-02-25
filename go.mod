@@ -4,6 +4,8 @@ go 1.25.7
 
 require github.com/gofiber/fiber/v2 v2.52.12
 
+require golang.org/x/crypto v0.48.0 // indirect
+
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
