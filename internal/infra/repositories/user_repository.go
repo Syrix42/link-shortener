@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/Syrix42/link-shortener/internal/entities"
@@ -58,10 +60,14 @@ func (d *UserRepository) GetByEmail(ctx context.Context, email string) (*entitie
 	user := UserDb{}
 	query := "SELECT * FROM users WHERE email = $1"
 
-	err := d.db.Get(user, query, email)
+	err := d.db.Get(&user, query, email)
 
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err // real DB error
+		}
 	}
 	return &entities.User{
 		ID:             user.ID,

@@ -21,6 +21,8 @@ func NewUser(Id, Email, HashedPassword string,
 		Email:          Email,
 		HashedPassword: HashedPassword,
 		ActiveSession:  ActiveSession,
+		IsActive:       IsActive,
+		IsAdmin:        IsAdmin,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 	}
