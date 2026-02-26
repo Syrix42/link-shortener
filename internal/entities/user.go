@@ -13,8 +13,8 @@ type User struct {
 	UpdatedAt      time.Time
 }
 
-func NewUser(Id, Email, HashedPassword,
-	IsActive, IsAdmin string, ActiveSession int, CreatedAt, UpdatedAt time.Time) *User {
+func NewUser(Id, Email, HashedPassword string,
+	IsActive, IsAdmin bool, ActiveSession int, CreatedAt, UpdatedAt time.Time) *User {
 
 	return &User{
 		ID:             Id,
