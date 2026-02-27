@@ -23,22 +23,22 @@ func loadDotEnvOnce() {
 
 func LoadPublicAccessJWTKey() (*rsa.PublicKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPublicKeyFromEnv("Public_ACESS_JWT_SECRET")
+	return parseRSAPublicKeyFromEnv("Public_ACESS_JWT_SECRET/PATH")
 }
 
 func LoadPrivateAccessJWTKey() (*rsa.PrivateKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPrivateKeyFromEnv("PRIVATE_ACCESS_JWT_SECRET")
+	return parseRSAPrivateKeyFromEnv("PRIVATE_ACCESS_JWT_SECRET/PATH")
 }
 
 func LoadPublicRefreshJWTKey() (*rsa.PublicKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPublicKeyFromEnv("PUBLIC_REFRESH_JWT_SECRET")
+	return parseRSAPublicKeyFromEnv("PUBLIC_REFRESH_JWT_SECRET/PATH")
 }
 
 func LoadPrivateRefreshJWTKey() (*rsa.PrivateKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPrivateKeyFromEnv("PRIVATE_REFRESH_JWT_SECRET")
+	return parseRSAPrivateKeyFromEnv("PRIVATE_REFRESH_JWT_SECRET/PATH")
 }
 
 func parseRSAPublicKeyFromEnv(envKey string) (*rsa.PublicKey, error) {
