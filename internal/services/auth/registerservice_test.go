@@ -6,34 +6,33 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Syrix42/link-shortener/internal/entities"
+	"github.com/Syrix42/link-shortener/internal/domain"
 )
 
 // ---- Fakes ----
 
 type fakeUserRepo struct {
-	GetByEmailFn func(ctx context.Context, email string) (*entities.User, error)
-	saveFn       func(ctx context.Context, u entities.User) error
+	GetByEmailFn func(ctx context.Context, email string) (*domain.User, error)
+	saveFn       func(ctx context.Context, u domain.User) error
 
 	// calls
 	GetByEmailCalled int
 	GetByEmailArgs   string
 
 	saveCalled int
-	savedUser  entities.User
+	savedUser  domain.User
 }
 
-func (f *fakeUserRepo) GetByEmail(ctx context.Context, email string) (*entities.User, error) {
+func (f *fakeUserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	f.GetByEmailCalled++
 	f.GetByEmailArgs = email
 	return f.GetByEmailFn(ctx, email)
 }
 
-func (f *fakeUserRepo) Save(ctx context.Context, u entities.User) error {
+func (f *fakeUserRepo) Save(ctx context.Context, u domain.User) error {
 	f.saveCalled++
 	f.savedUser = u
 	return f.saveFn(ctx, u)
-
 }
 
 type fakeHasher struct {
@@ -52,11 +51,11 @@ func (f *fakeHasher) Hash(ctx context.Context, password string) (string, error) 
 
 func TestRegister_InvalidEmail_ReturnsErrInvalidEmailFormat_AndDoesNotTouchRepo(t *testing.T) {
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
+		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			t.Fatalf("Getby Email should not be called for invalid email")
 			return nil, nil
 		},
-		saveFn: func(ctx context.Context, u entities.User) error {
+		saveFn: func(ctx context.Context, u domain.User) error {
 			t.Fatalf("Save Should not be called for invalid email ")
 			return nil
 		},
@@ -84,13 +83,13 @@ func TestRegister_InvalidEmail_ReturnsErrInvalidEmailFormat_AndDoesNotTouchRepo(
 }
 
 func TestRegister_UserAlreadyExists_ReturnsErrUserAlreadyExists_AndDoesNotSave(t *testing.T) {
-	existing := entities.NewUser("id1", "ali@example.com", "hash", true, false, time.Now().UTC(), time.Now().UTC())
+	existing := domain.NewUser("id1", "ali@example.com", "hash", true, false, time.Now().UTC(), time.Now().UTC())
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
+		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return existing, nil
 		},
-		saveFn: func(ctx context.Context, u entities.User) error {
+		saveFn: func(ctx context.Context, u domain.User) error {
 			t.Fatalf("Save should not be called when user exists")
 			return nil
 		},
@@ -117,10 +116,10 @@ func TestRegister_GetByEmailError_ReturnsThatError_AndDoesNotHashOrSave(t *testi
 	repoErr := errors.New("db down")
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
+		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, repoErr
 		},
-		saveFn: func(ctx context.Context, u entities.User) error {
+		saveFn: func(ctx context.Context, u domain.User) error {
 			t.Fatalf("Save should not be called when GetByEmail fails")
 			return nil
 		},
@@ -150,10 +149,10 @@ func TestRegister_HashError_ReturnsThatError_AndDoesNotSave(t *testing.T) {
 	hashErr := errors.New("hash failed")
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
+		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, nil
 		},
-		saveFn: func(ctx context.Context, u entities.User) error {
+		saveFn: func(ctx context.Context, u domain.User) error {
 			t.Fatalf("Save should not be called when Hash fails")
 			return nil
 		},
@@ -177,10 +176,10 @@ func TestRegister_HashError_ReturnsThatError_AndDoesNotSave(t *testing.T) {
 
 func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
+		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, nil
 		},
-		saveFn: func(ctx context.Context, u entities.User) error {
+		saveFn: func(ctx context.Context, u domain.User) error {
 			return nil
 		},
 	}

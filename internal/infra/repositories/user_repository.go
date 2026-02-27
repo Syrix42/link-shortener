@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Syrix42/link-shortener/internal/entities"
+	"github.com/Syrix42/link-shortener/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -32,7 +32,7 @@ func NewUserRepository(database *sqlx.DB) *UserRepository {
 
 }
 
-func (d *UserRepository) Save(ctx context.Context, u entities.User) error {
+func (d *UserRepository) Save(ctx context.Context, u domain.User) error {
 
 	user := UserDb{
 		ID:             u.ID,
@@ -54,7 +54,7 @@ func (d *UserRepository) Save(ctx context.Context, u entities.User) error {
 
 }
 
-func (d *UserRepository) GetByEmail(ctx context.Context, email string) (*entities.User, error) {
+func (d *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 
 	user := UserDb{}
 	query := "SELECT * FROM users WHERE email = $1"
@@ -68,7 +68,7 @@ func (d *UserRepository) GetByEmail(ctx context.Context, email string) (*entitie
 			return nil, err // real DB error
 		}
 	}
-	return &entities.User{
+	return &domain.User{
 		ID:             user.ID,
 		Email:          user.Email,
 		HashedPassword: user.HashedPassword,

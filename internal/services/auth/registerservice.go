@@ -6,7 +6,7 @@ import (
 
 	"net/mail"
 
-	"github.com/Syrix42/link-shortener/internal/entities"
+	"github.com/Syrix42/link-shortener/internal/domain"
 	"github.com/Syrix42/link-shortener/internal/services/repositories"
 	"github.com/google/uuid"
 )
@@ -42,7 +42,7 @@ func (r *RegisterService) Register(ctx context.Context, Email, password string) 
 	if err != nil {
 		return err
 	}
-	user := entities.NewUser(uuid.NewString(), ValidEmail.Address, Hashed, true, false, time.Now().UTC(), time.Now().UTC())
+	user := domain.NewUser(uuid.NewString(), ValidEmail.Address, Hashed, true, false, time.Now().UTC(), time.Now().UTC())
 
 	r.UserRepo.Save(ctx, *user)
 	return nil
