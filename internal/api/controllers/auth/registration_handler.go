@@ -9,7 +9,7 @@ import (
 
 func (r *Handler) Register(c *fiber.Ctx) error {
 
-	var request RegisterationRequest
+	var request RegisterRequest
 	ctx := c.UserContext()
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -17,7 +17,7 @@ func (r *Handler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	err := r.Regiserservice.Register(ctx, request.Email, request.Password)
+	err := r.RegisterService.Register(ctx, request.Email, request.Password)
 
 	if err != nil {
 		switch {
@@ -34,7 +34,7 @@ func (r *Handler) Register(c *fiber.Ctx) error {
 
 		}
 	}
-	resp := RegisterationResponce{Status: "Accepted", Messsege: "User Registerd Successfuly"}
-	return c.Status(fiber.StatusOK).JSON(resp)
+	resp := RegisterResponse{Status: "Accepted", Message: "User Registered Successfully"}
 
+	return c.Status(fiber.StatusOK).JSON(resp)
 }

@@ -15,11 +15,11 @@ type Handlers interface {
 
 // Other Services will be added on later
 type Handler struct {
-	Regiserservice auth.RegisterService
+	RegisterService auth.RegisterService
 }
 
-func NewHandler(Registerationservice *auth.RegisterService) *Handler {
+func NewHandler(RegisterService *auth.RegisterService) *Handler {
 	return &Handler{
-		Regiserservice: *Registerationservice,
+		RegisterService: *RegisterService,
 	}
 }

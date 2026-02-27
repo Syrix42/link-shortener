@@ -36,13 +36,13 @@ func (f *fakeUserRepo) Save(ctx context.Context, u entities.User) error {
 
 }
 
-type fakeHahser struct {
+type fakeHasher struct {
 	hashFn      func(ctx context.Context, password string) (string, error)
 	hashCalled  int
 	hashArgPass string
 }
 
-func (f *fakeHahser) Hash(ctx context.Context, password string) (string, error) {
+func (f *fakeHasher) Hash(ctx context.Context, password string) (string, error) {
 	f.hashCalled++
 	f.hashArgPass = password
 	return f.hashFn(ctx, password)
@@ -61,9 +61,9 @@ func TestRegister_InvalidEmail_ReturnsErrInvalidEmailFormat_AndDoesNotTouchRepo(
 			return nil
 		},
 	}
-	hasher := &fakeHahser{
+	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
-			t.Fatalf("Hahser . Hash should not be called for invalid email")
+			t.Fatalf("Hasher . Hash should not be called for invalid email")
 			return "", nil
 		},
 	}
@@ -95,7 +95,7 @@ func TestRegister_UserAlreadyExists_ReturnsErrUserAlreadyExists_AndDoesNotSave(t
 			return nil
 		},
 	}
-	hasher := &fakeHahser{
+	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
 			t.Fatalf("Hasher.Hash should not be called when user exists")
 			return "", nil
@@ -125,7 +125,7 @@ func TestRegister_GetByEmailError_ReturnsThatError_AndDoesNotHashOrSave(t *testi
 			return nil
 		},
 	}
-	hasher := &fakeHahser{
+	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
 			t.Fatalf("Hasher.Hash should not be called when GetByEmail fails")
 			return "", nil
@@ -158,7 +158,7 @@ func TestRegister_HashError_ReturnsThatError_AndDoesNotSave(t *testing.T) {
 			return nil
 		},
 	}
-	hasher := &fakeHahser{
+	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
 			return "", hashErr
 		},
@@ -184,7 +184,7 @@ func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 			return nil
 		},
 	}
-	hasher := &fakeHahser{
+	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
 			if password != "pw123" {
 				t.Fatalf("expected password pw123, got %q", password)

@@ -1,11 +1,11 @@
 package auth
 
-type RegisterationRequest struct {
+type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type RegisterationResponce struct {
-	Status   string `json:"status"`
-	Messsege string `json:"messege"`
+type RegisterResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
