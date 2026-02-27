@@ -6,7 +6,6 @@ type User struct {
 	ID             string
 	Email          string
 	HashedPassword string
-	ActiveSession  int
 	IsActive       bool
 	IsAdmin        bool
 	CreatedAt      time.Time
@@ -14,13 +13,12 @@ type User struct {
 }
 
 func NewUser(Id, Email, HashedPassword string,
-	IsActive, IsAdmin bool, ActiveSession int, CreatedAt, UpdatedAt time.Time) *User {
+	IsActive, IsAdmin bool, CreatedAt, UpdatedAt time.Time) *User {
 
 	return &User{
 		ID:             Id,
 		Email:          Email,
 		HashedPassword: HashedPassword,
-		ActiveSession:  ActiveSession,
 		IsActive:       IsActive,
 		IsAdmin:        IsAdmin,
 		CreatedAt:      time.Now().UTC(),

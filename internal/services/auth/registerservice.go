@@ -42,7 +42,7 @@ func (r *RegisterService) Register(ctx context.Context, Email, password string) 
 	if err != nil {
 		return err
 	}
-	user := entities.NewUser(uuid.NewString(), ValidEmail.Address, Hashed, true, false, 0, time.Now().UTC(), time.Now().UTC())
+	user := entities.NewUser(uuid.NewString(), ValidEmail.Address, Hashed, true, false, time.Now().UTC(), time.Now().UTC())
 
 	r.UserRepo.Save(ctx, *user)
 	return nil

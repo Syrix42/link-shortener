@@ -84,7 +84,7 @@ func TestRegister_InvalidEmail_ReturnsErrInvalidEmailFormat_AndDoesNotTouchRepo(
 }
 
 func TestRegister_UserAlreadyExists_ReturnsErrUserAlreadyExists_AndDoesNotSave(t *testing.T) {
-	existing := entities.NewUser("id1", "ali@example.com", "hash", true, false, 0, time.Now().UTC(), time.Now().UTC())
+	existing := entities.NewUser("id1", "ali@example.com", "hash", true, false, time.Now().UTC(), time.Now().UTC())
 
 	repo := &fakeUserRepo{
 		GetByEmailFn: func(ctx context.Context, email string) (*entities.User, error) {
@@ -216,9 +216,7 @@ func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 	if u.IsAdmin != false {
 		t.Fatalf("expected IsAdmin=false, got %v", u.IsAdmin)
 	}
-	if u.ActiveSession != 0 {
-		t.Fatalf("expected ActiveSessions=0, got %d", u.ActiveSession)
-	}
+
 	// Also verify password is the hashed value
 	if u.HashedPassword != "hashed_pw123" {
 		t.Fatalf("expected Password=hashed_pw123, got %q", u.HashedPassword)
