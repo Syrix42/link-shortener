@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Session struct {
 	ID          string // sid
@@ -12,6 +15,8 @@ type Session struct {
 	LastUsedAt  *time.Time
 }
 
+var ErrTooManyActiveSessions = errors.New("active sessions cannot be more than 5")
+
 func NewSession(ID, UserId, RefreshHash string, ExpiresAt, CreatedAt time.Time) *Session {
 	return &Session{
 		ID:          ID,
@@ -20,4 +25,11 @@ func NewSession(ID, UserId, RefreshHash string, ExpiresAt, CreatedAt time.Time) 
 		ExpiresAt:   ExpiresAt,
 		CreatedAt:   CreatedAt,
 	}
+}
+
+func EnsureMaxActiveSessions(activeCount, max int) error {
+	if activeCount > max {
+		return ErrTooManyActiveSessions
+	}
+	return nil
 }

@@ -59,9 +59,9 @@ func (d *SessionRepository) RotateRefreshToken(ctx context.Context, s *domain.Se
 	return err
 }
 
-func (d *SessionRepository) DeleteSession(ctx context.Context, session domain.Session) error {
+func (d *SessionRepository) DeleteSession(ctx context.Context, SessionId string) error {
 	query := "DELETE FROM sessions WHERE id = :id"
-	_, err := d.db.NamedExecContext(ctx, query, session)
+	_, err := d.db.NamedExecContext(ctx, query, SessionId)
 	return err
 }
 

@@ -5,11 +5,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// General Router
+// General Router for Authentication
 func AuthRoutes(v1 fiber.Router, h auth.Handlers) {
 	g := v1.Group("/auth")
 	g.Post("/register", h.Register)
-	//g.Post("/login", h.Login)
+	g.Post("/login", h.Login)
 	//g.Post("/revoke", h.Revoke)
 	//g.Post("/logout", h.Logout)
+
 }

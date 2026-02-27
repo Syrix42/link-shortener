@@ -6,20 +6,13 @@ import (
 	"github.com/Syrix42/link-shortener/internal/api"
 	AuthHandler "github.com/Syrix42/link-shortener/internal/api/controllers/auth"
 	"github.com/Syrix42/link-shortener/internal/config"
-	"github.com/Syrix42/link-shortener/internal/infra/crypto"
+	crypto "github.com/Syrix42/link-shortener/internal/infra/crypto/hashing"
 	"github.com/Syrix42/link-shortener/internal/infra/database"
 	"github.com/Syrix42/link-shortener/internal/infra/repositories"
 	AuthService "github.com/Syrix42/link-shortener/internal/services/auth"
 	"github.com/gofiber/fiber/v2"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
-
-	_ "github.com/Syrix42/link-shortener/swagger"
 )
 
-// @title Link Shortener API
-// @version 1.0
-// @description API for user authentication and link-shortening services.
-// @BasePath /api/v1
 func main() {
 
 	// 1 Load configs from .env files from here
@@ -27,32 +20,42 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load db config: %v", err)
 	}
-	//2 DataBase connection is Established through the method bellow
+	AccessSecretConfig, err := config.LoadPrivateAccessJWTKey()
+	if err != nil {
+		log.Fatalf("Could not Load the JWT Access Secret :%v", err)
+	}
+
+	RefreshSecretConfig, err := config.LoadPrivateRefreshJWTKey()
+
+	if err != nil {
+		log.Fatalf("Could not Load the JWT Refresh Secret :%v", err)
+	}
+
+	//3 DataBase connection is Established through the method bellow
 	db, err := database.Connect(dbconfig)
 	if err != nil {
 		log.Fatalf("Could not connect to the database: %v", err)
 	}
-	// 3) Build dependencies (repo -> service -> handler)
+	// 4) Build dependencies (repo -> service -> handler)
 
 	hasher := crypto.NewBcryptHasher()
-	//Repository of Aggregate User if you Intent to use it its already injected
-	userRepo := repositories.NewUserRepository(db)
+	Comparer := crypto.NewBcryptComparer()
+	//5 Repository of Aggregate User if you Intent to use it its already Injected
+	Userrepo := repositories.NewUserRepository(db)
+	//6 Repository of Aggregate Session if you Intent to use it its already Injected
+	SessionRepo := repositories.NewSessionRepository(db)
+	RegisterationService := AuthService.NewRegisterService(Userrepo, hasher)
+	LoginService := AuthService.NewLoginService(Userrepo, Comparer, SessionRepo, SessionRepo, RefreshSecretConfig, AccessSecretConfig)
+	AuthenticationHandler := AuthHandler.NewHandler(RegisterationService, LoginService)
 
-	authenticationService := AuthService.NewRegisterService(userRepo, hasher)
-	authenticationHandler := AuthHandler.NewHandler(authenticationService)
-
-	// 4) Create app + routes
+	// 7) Create app + routes
 
 	app := fiber.New()
 
 	apiGroup := app.Group("/api")
 	v1 := apiGroup.Group("/v1")
 
-	api.AuthRoutes(v1, authenticationHandler)
-	app.Get("/swagger", func(c *fiber.Ctx) error {
-		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
-	})
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
+	api.AuthRoutes(v1, AuthenticationHandler)
 
 	appCfg := config.LoadAppConfig()
 	log.Fatal(app.Listen(appCfg.ListenAddr()))

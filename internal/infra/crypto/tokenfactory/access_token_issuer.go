@@ -8,11 +8,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func IssueAccessToken(ctx context.Context, Role, SessionId, UserId string, privateKey *rsa.PrivateKey) (string, error) {
+func IssueAccessToken(ctx context.Context, IsAdmin bool, SessionId, UserId string, privateKey *rsa.PrivateKey) (string, error) {
 	now := time.Now().UTC()
 
 	claims := AccessClaims{
-		Role:      Role,
+		IsAdmin:   IsAdmin,
 		SessionID: SessionId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   UserId,

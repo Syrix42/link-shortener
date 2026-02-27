@@ -8,7 +8,7 @@ import (
 
 type SessionRepository interface {
 	CreateSession(ctx context.Context, Session *domain.Session) error
-	RotateRefreshToken(ctx context.Context, Session domain.Session) error
+	RotateRefreshToken(ctx context.Context, Session *domain.Session) error
 	DeleteSession(ctx context.Context, SessionID string) error
 }
 

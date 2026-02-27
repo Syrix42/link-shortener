@@ -1,2 +1,4 @@
 .env
 deployment/.env.prod
+secrets/refresh_private.pem
+secrets/refresh_public.pem
