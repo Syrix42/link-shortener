@@ -13,7 +13,11 @@ package auth
 // @Failure 500 {object} ErrorResponse
 // @Router /auth/register [post]
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
+		"github.com/Syrix42/link-shortener/internal/services/auth"
+
 )
 
 func (r *Handler) Login(c *fiber.Ctx) error {
@@ -25,5 +29,29 @@ func (r *Handler) Login(c *fiber.Ctx) error {
 		})
 
 	}
+	AccessToken , RefreshToken , err := r.LoginService.Login(ctx , req.Email , req.Password)
 
+	if err!= nil {
+		switch {
+		case errors.Is(err ,auth.ErrInvalidEmailFormat):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid_email_format",
+			})
+		case errors.Is(err , auth.ErrUserNotFound){
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": "user_not_found",
+			})
+		case errors.Is(err , auth.ErrInvalidPasswor):
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "invalid_password"
+			})
+		default:
+			return  c.SendStatus(fiber.StatusInternalServerError)
+		}
+		}
+	}
+	resp := LoginResponse{Status: "Authenticated" , JWTRefreshToken: RefreshToken , JWTAccessToken: AccessToken}
+	
+
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
