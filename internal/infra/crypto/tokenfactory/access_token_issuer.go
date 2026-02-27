@@ -16,8 +16,8 @@ func IssueAccessToken(ctx context.Context, IsAdmin bool, SessionId, UserId strin
 		SessionID: SessionId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   UserId,
-			Issuer:    "aAuth",
-			Audience:  []string{"my-api"},
+			Issuer:    "link-Auth",
+			Audience:  []string{"link-resources"},
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(15 * time.Minute)),
 		},

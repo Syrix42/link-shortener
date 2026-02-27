@@ -44,7 +44,10 @@ func (r *RegisterService) Register(ctx context.Context, Email, password string) 
 	}
 	user := domain.NewUser(uuid.NewString(), ValidEmail.Address, Hashed, true, false, time.Now().UTC(), time.Now().UTC())
 
-	r.UserRepo.Save(ctx, *user)
+	err = r.UserRepo.Save(ctx, *user)
+	if err != nil {
+		return err
+	}
 	return nil
 
 }

@@ -11,7 +11,7 @@ import (
 type SessionDB struct {
 	ID          string     `db:"id"`
 	UserID      string     `db:"user_id"`
-	RefreshHash string     `db:"refresh_token_hashed"`
+	RefreshHash string     `db:"refresh_token_hash"`
 	ExpiresAt   time.Time  `db:"expires_at"`
 	RevokedAt   *time.Time `db:"revoked_at"`
 	CreatedAt   time.Time  `db:"created_at"`

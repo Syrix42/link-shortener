@@ -38,23 +38,31 @@ func NewLoginService(Userrepository repositories.UserRepository,
 
 func (l *LoginService) Login(ctx context.Context, Email, Password string) (string, string, error) {
 	ValidEmail, err := mail.ParseAddress(Email)
+
 	if err != nil {
 		return "", "", ErrInvalidEmailFormat
 	}
+
 	existance, err := l.UserRepo.GetByEmail(ctx, ValidEmail.Address)
 	if existance == nil {
+
 		return "", "", ErrUserNotFound
+
 	}
 	if err != nil {
+
 		return "", "", err
 	}
 	err = l.Comparer.Compare(ctx, existance.HashedPassword, Password)
 
 	if err != nil {
+
 		return "", "", ErrInvalidPassword
 	}
 	ActiveSessions, err := l.QuerySession.CountSessionsByUserID(ctx, existance.ID)
+
 	if err != nil {
+
 		return "", "", err
 	}
 	err = domain.EnsureMaxActiveSessions(ActiveSessions, 5)
@@ -68,11 +76,13 @@ func (l *LoginService) Login(ctx context.Context, Email, Password string) (strin
 	}
 	RefreshToken, err := crypto.IssueRefreshToken(ctx, SessionId, existance.ID, l.RefreshPrivateSecret)
 	if err != nil {
+
 		return "", "", err
 	}
 	Session := domain.NewSession(SessionId, existance.ID, RefreshToken, time.Now().Add(time.Minute*10080), time.Now())
 	err = l.SessionRepo.CreateSession(ctx, Session)
 	if err != nil {
+
 		return "", "", err
 	}
 	return AccessToken, RefreshToken, nil

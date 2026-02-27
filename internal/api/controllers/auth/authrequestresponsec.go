@@ -21,6 +21,6 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	Status          string `json:"status"`
-	JWTRefreshToken string `json:"jwtRecoveryToken"`
+	JWTRefreshToken string `json:"jwtRefreshToken"`
 	JWTAccessToken  string `json:"jwtAccessToken"`
 }

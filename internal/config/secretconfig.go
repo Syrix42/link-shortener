@@ -2,14 +2,14 @@ package config
 
 import (
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -17,110 +17,101 @@ var loadOnce sync.Once
 
 func loadDotEnvOnce() {
 	loadOnce.Do(func() {
-		_ = godotenv.Load()
+		err := godotenv.Load()
+		if err != nil {
+			err = godotenv.Load("../.env")
+			if err != nil {
+				err = godotenv.Load("../../.env")
+				_ = err
+			}
+		}
 	})
 }
 
 func LoadPublicAccessJWTKey() (*rsa.PublicKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPublicKeyFromEnv("Public_ACESS_JWT_SECRET/PATH")
+	return parseRSAPublicKeyFromPathEnv("PUBLIC_ACCESS_JWT_SECRET_PATH")
 }
 
 func LoadPrivateAccessJWTKey() (*rsa.PrivateKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPrivateKeyFromEnv("PRIVATE_ACCESS_JWT_SECRET/PATH")
+	return parseRSAPrivateKeyFromPathEnv("PRIVATE_ACCESS_JWT_SECRET_PATH")
 }
 
 func LoadPublicRefreshJWTKey() (*rsa.PublicKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPublicKeyFromEnv("PUBLIC_REFRESH_JWT_SECRET/PATH")
+	return parseRSAPublicKeyFromPathEnv("PUBLIC_REFRESH_JWT_SECRET_PATH")
 }
 
 func LoadPrivateRefreshJWTKey() (*rsa.PrivateKey, error) {
 	loadDotEnvOnce()
-	return parseRSAPrivateKeyFromEnv("PRIVATE_REFRESH_JWT_SECRET/PATH")
+	return parseRSAPrivateKeyFromPathEnv("PRIVATE_REFRESH_JWT_SECRET_PATH")
 }
 
-func parseRSAPublicKeyFromEnv(envKey string) (*rsa.PublicKey, error) {
-	raw, err := readEnv(envKey)
+func parseRSAPrivateKeyFromPathEnv(envKey string) (*rsa.PrivateKey, error) {
+	path, err := mustGetEnv(envKey)
 	if err != nil {
 		return nil, err
 	}
 
-	block, _ := pem.Decode([]byte(raw))
-	if block == nil {
-		return nil, fmt.Errorf("%s: invalid PEM (no block found)", envKey)
-	}
-
-	if block.Type == "RSA PUBLIC KEY" {
-		pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
-		if err != nil {
-			return nil, fmt.Errorf("%s: parse PKCS1 public key: %w", envKey, err)
-		}
-		return pub, nil
-	}
-
-	pubAny, err := x509.ParsePKIXPublicKey(block.Bytes)
+	b, err := readFileFlexible(path)
 	if err != nil {
-
-		if pub, err2 := x509.ParsePKCS1PublicKey(block.Bytes); err2 == nil {
-			return pub, nil
-		}
-		return nil, fmt.Errorf("%s: parse PKIX public key: %w", envKey, err)
+		return nil, fmt.Errorf("%s: read key file: %w", envKey, err)
 	}
 
-	pub, ok := pubAny.(*rsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("%s: not an RSA public key", envKey)
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(b)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse RSA private key PEM: %w", envKey, err)
 	}
-	return pub, nil
+
+	return key, nil
 }
 
-func parseRSAPrivateKeyFromEnv(envKey string) (*rsa.PrivateKey, error) {
-	raw, err := readEnv(envKey)
+func parseRSAPublicKeyFromPathEnv(envKey string) (*rsa.PublicKey, error) {
+	path, err := mustGetEnv(envKey)
 	if err != nil {
 		return nil, err
 	}
 
-	block, _ := pem.Decode([]byte(raw))
-	if block == nil {
-		return nil, fmt.Errorf("%s: invalid PEM (no block found)", envKey)
-	}
-
-	if block.Type == "RSA PRIVATE KEY" {
-		priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, fmt.Errorf("%s: parse PKCS1 private key: %w", envKey, err)
-		}
-		return priv, nil
-	}
-
-	privAny, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	b, err := readFileFlexible(path)
 	if err != nil {
-		// Fallback if it is actually PKCS#1.
-		if priv, err2 := x509.ParsePKCS1PrivateKey(block.Bytes); err2 == nil {
-			return priv, nil
-		}
-		return nil, fmt.Errorf("%s: parse PKCS8 private key: %w", envKey, err)
+		return nil, fmt.Errorf("%s: read key file: %w", envKey, err)
 	}
 
-	priv, ok := privAny.(*rsa.PrivateKey)
-	if !ok {
-		return nil, fmt.Errorf("%s: not an RSA private key", envKey)
+	key, err := jwt.ParseRSAPublicKeyFromPEM(b)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse RSA public key PEM: %w", envKey, err)
 	}
-	return priv, nil
+
+	return key, nil
 }
 
-func readEnv(key string) (string, error) {
-	val := strings.TrimSpace(os.Getenv(key))
-	if val == "" {
+func mustGetEnv(key string) (string, error) {
+	v := strings.TrimSpace(os.Getenv(key))
+	if v == "" {
 		return "", fmt.Errorf("missing env var: %s", key)
 	}
+	return v, nil
+}
 
-	val = strings.ReplaceAll(val, `\n`, "\n")
+func readFileFlexible(path string) ([]byte, error) {
+	path = strings.TrimSpace(path)
 
-	if !strings.Contains(val, "BEGIN") {
-		return "", errors.New("key does not look like PEM; expected a PEM-encoded RSA key")
+	if filepath.IsAbs(path) {
+		return os.ReadFile(path)
 	}
-	return val, nil
+
+	if b, err := os.ReadFile(path); err == nil {
+		return b, nil
+	}
+
+	if b, err := os.ReadFile(filepath.Join("..", path)); err == nil {
+		return b, nil
+	}
+
+	if b, err := os.ReadFile(filepath.Join("..", "..", path)); err == nil {
+		return b, nil
+	}
+
+	return nil, errors.New("file not found in working dir or parent dirs")
 }

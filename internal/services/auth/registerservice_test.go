@@ -12,21 +12,20 @@ import (
 // ---- Fakes ----
 
 type fakeUserRepo struct {
-	GetByEmailFn func(ctx context.Context, email string) (*domain.User, error)
+	getByEmailFn func(ctx context.Context, email string) (*domain.User, error)
 	saveFn       func(ctx context.Context, u domain.User) error
 
-	// calls
-	GetByEmailCalled int
-	GetByEmailArgs   string
+	getByEmailCalled int
+	getByEmailArg    string
 
 	saveCalled int
 	savedUser  domain.User
 }
 
 func (f *fakeUserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
-	f.GetByEmailCalled++
-	f.GetByEmailArgs = email
-	return f.GetByEmailFn(ctx, email)
+	f.getByEmailCalled++
+	f.getByEmailArg = email
+	return f.getByEmailFn(ctx, email)
 }
 
 func (f *fakeUserRepo) Save(ctx context.Context, u domain.User) error {
@@ -47,46 +46,45 @@ func (f *fakeHasher) Hash(ctx context.Context, password string) (string, error) 
 	return f.hashFn(ctx, password)
 }
 
-// Tests
+// ---- Tests ----
 
 func TestRegister_InvalidEmail_ReturnsErrInvalidEmailFormat_AndDoesNotTouchRepo(t *testing.T) {
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
-			t.Fatalf("Getby Email should not be called for invalid email")
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+			t.Fatalf("GetByEmail should not be called for invalid email")
 			return nil, nil
 		},
 		saveFn: func(ctx context.Context, u domain.User) error {
-			t.Fatalf("Save Should not be called for invalid email ")
+			t.Fatalf("Save should not be called for invalid email")
 			return nil
 		},
 	}
 	hasher := &fakeHasher{
 		hashFn: func(ctx context.Context, password string) (string, error) {
-			t.Fatalf("Hasher . Hash should not be called for invalid email")
+			t.Fatalf("Hasher.Hash should not be called for invalid email")
 			return "", nil
 		},
 	}
+
 	svc := NewRegisterService(repo, hasher)
 
 	err := svc.Register(context.Background(), "not-an-email", "pw123")
-
 	if !errors.Is(err, ErrInvalidEmailFormat) {
-		t.Fatalf("expected ErrInvalidEmailFormat , got: %v", err)
+		t.Fatalf("expected ErrInvalidEmailFormat, got: %v", err)
 	}
-	if repo.GetByEmailCalled != 0 || repo.saveCalled != 0 {
-		t.Fatalf("expected repo not called, got GetByEmail=%d Save=%d", repo.GetByEmailCalled, repo.saveCalled)
+	if repo.getByEmailCalled != 0 || repo.saveCalled != 0 {
+		t.Fatalf("expected repo not called, got GetByEmail=%d Save=%d", repo.getByEmailCalled, repo.saveCalled)
 	}
 	if hasher.hashCalled != 0 {
 		t.Fatalf("expected hasher not called, got %d", hasher.hashCalled)
 	}
-
 }
 
 func TestRegister_UserAlreadyExists_ReturnsErrUserAlreadyExists_AndDoesNotSave(t *testing.T) {
 	existing := domain.NewUser("id1", "ali@example.com", "hash", true, false, time.Now().UTC(), time.Now().UTC())
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return existing, nil
 		},
 		saveFn: func(ctx context.Context, u domain.User) error {
@@ -116,7 +114,7 @@ func TestRegister_GetByEmailError_ReturnsThatError_AndDoesNotHashOrSave(t *testi
 	repoErr := errors.New("db down")
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, repoErr
 		},
 		saveFn: func(ctx context.Context, u domain.User) error {
@@ -149,7 +147,7 @@ func TestRegister_HashError_ReturnsThatError_AndDoesNotSave(t *testing.T) {
 	hashErr := errors.New("hash failed")
 
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, nil
 		},
 		saveFn: func(ctx context.Context, u domain.User) error {
@@ -176,7 +174,7 @@ func TestRegister_HashError_ReturnsThatError_AndDoesNotSave(t *testing.T) {
 
 func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 	repo := &fakeUserRepo{
-		GetByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
 			return nil, nil
 		},
 		saveFn: func(ctx context.Context, u domain.User) error {
@@ -205,7 +203,6 @@ func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 
 	u := repo.savedUser
 
-	// Preconditions & invariants you listed
 	if u.Email != "ali@example.com" {
 		t.Fatalf("expected email ali@example.com, got %q", u.Email)
 	}
@@ -215,12 +212,9 @@ func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 	if u.IsAdmin != false {
 		t.Fatalf("expected IsAdmin=false, got %v", u.IsAdmin)
 	}
-
-	// Also verify password is the hashed value
 	if u.HashedPassword != "hashed_pw123" {
 		t.Fatalf("expected Password=hashed_pw123, got %q", u.HashedPassword)
 	}
-	// sanity checks for created fields
 	if u.ID == "" {
 		t.Fatalf("expected non-empty ID")
 	}
@@ -229,5 +223,30 @@ func TestRegister_Success_SetsInvariants_AndSavesUser(t *testing.T) {
 	}
 	if u.UpdatedAt.Before(u.CreatedAt) {
 		t.Fatalf("expected UpdatedAt >= CreatedAt")
+	}
+}
+
+func TestRegister_SaveError_IsReturned(t *testing.T) {
+	saveErr := errors.New("save failed")
+
+	repo := &fakeUserRepo{
+		getByEmailFn: func(ctx context.Context, email string) (*domain.User, error) {
+			return nil, nil
+		},
+		saveFn: func(ctx context.Context, u domain.User) error {
+			return saveErr
+		},
+	}
+	hasher := &fakeHasher{
+		hashFn: func(ctx context.Context, password string) (string, error) {
+			return "hashed_pw123", nil
+		},
+	}
+
+	svc := NewRegisterService(repo, hasher)
+
+	err := svc.Register(context.Background(), "ali@example.com", "pw123")
+	if !errors.Is(err, saveErr) {
+		t.Fatalf("expected saveErr, got: %v", err)
 	}
 }

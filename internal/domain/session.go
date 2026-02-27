@@ -28,7 +28,7 @@ func NewSession(ID, UserId, RefreshHash string, ExpiresAt, CreatedAt time.Time) 
 }
 
 func EnsureMaxActiveSessions(activeCount, max int) error {
-	if activeCount > max {
+	if activeCount >= max {
 		return ErrTooManyActiveSessions
 	}
 	return nil

@@ -13,12 +13,18 @@ type DBEnv struct {
 }
 
 func LoadDBConfig(envFile string) (database.Config, error) {
-	if envFile != "" {
-		_ = godotenv.Load(envFile)
+	var err error
 
+	if envFile != "" {
+		err = godotenv.Load(envFile)
 	} else {
-		_ = godotenv.Load()
+		err = godotenv.Load()
 	}
+	if err != nil {
+		wd, _ := os.Getwd()
+		return database.Config{}, fmt.Errorf("could not load .env (cwd=%s, envFile=%q): %w", wd, envFile, err)
+	}
+
 	cfg := database.Config{
 		Host:     getEnv("DB_HOST", ""),
 		Port:     getEnv("DB_PORT", "5432"),
@@ -28,6 +34,7 @@ func LoadDBConfig(envFile string) (database.Config, error) {
 		SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		TimeZone: getEnv("DB_TIMEZONE", "UTC"),
 	}
+
 	missing := missingVars(map[string]string{
 		"DB_HOST":     cfg.Host,
 		"DB_NAME":     cfg.Name,
@@ -39,7 +46,6 @@ func LoadDBConfig(envFile string) (database.Config, error) {
 	}
 
 	return cfg, nil
-
 }
 
 func getEnv(key, fallback string) string {

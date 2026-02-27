@@ -14,7 +14,6 @@ type UserDb struct {
 	ID             string    `db:"id"`
 	Email          string    `db:"email"`
 	HashedPassword string    `db:"hashed_password"`
-	ActiveSession  int       `db:"active_sessions"`
 	IsActive       bool      `db:"is_active"`
 	IsAdmin        bool      `db:"is_admin"`
 	CreatedAt      time.Time `db:"created_at"`
@@ -43,11 +42,12 @@ func (d *UserRepository) Save(ctx context.Context, u domain.User) error {
 		CreatedAt:      u.CreatedAt,
 		UpdatedAt:      u.UpdatedAt,
 	}
-	query := "Insert Into users (id , email , hashed_password , active_sessions , is_active , is_admin , created_at , updated_at) VALUES(:id , :email ,:hashed_password ,:active_sessions , :is_active , :is_admin , :created_at , :updated_at) "
+	query := "Insert Into users (id , email , hashed_password , is_active , is_admin , created_at , updated_at) VALUES(:id , :email ,:hashed_password  , :is_active , :is_admin , :created_at , :updated_at) "
 
 	_, err := d.db.NamedExec(query, user)
 
 	if err != nil {
+
 		return err
 	}
 	return nil

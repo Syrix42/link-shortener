@@ -14,8 +14,8 @@ func IssueRefreshToken(ctx context.Context, SessionID, Userid string, privateKey
 		SessionID: SessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   Userid,
-			Issuer:    "aAuth",
-			Audience:  []string{"my-api"},
+			Issuer:    "link-Auth",
+			Audience:  []string{"revocation"},
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 10080)),
 		},

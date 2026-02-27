@@ -22,14 +22,14 @@ import (
 func (r *Handler) Login(c *fiber.Ctx) error {
 	var req LoginRequest
 	ctx := c.UserContext()
-	if err := c.JSON(&req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid_json",
 		})
 
 	}
-	AccessToken, RefreshToken, err := r.LoginService.Login(ctx, req.Email, req.Password)
 
+	AccessToken, RefreshToken, err := r.LoginService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		switch {
 		case errors.Is(err, auth.ErrInvalidEmailFormat):
@@ -37,7 +37,7 @@ func (r *Handler) Login(c *fiber.Ctx) error {
 				"error": "invalid_email_format",
 			})
 		case errors.Is(err, auth.ErrUserNotFound):
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "user_not_found",
 			})
 		case errors.Is(err, auth.ErrInvalidPassword):
@@ -46,7 +46,7 @@ func (r *Handler) Login(c *fiber.Ctx) error {
 			})
 
 		case errors.Is(err, auth.ErrTooManyActiveSessions):
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "too_many_active_sessions",
 			})
 		default:
