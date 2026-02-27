@@ -4,7 +4,6 @@ A Go + Fiber API with Docker Compose dev/prod workflows and Swagger docs via `sw
 
 Make Targets
 
-- `make swag`: Generate Swagger spec (`docs/swagger.yaml`)
 - `make dev-up`: Start dev stack (`deployment/docker-compose.yml`)
 - `make dev-down`: Stop dev stack
 - `make dev-restart`: Restart dev stack
@@ -20,6 +19,4 @@ Make Targets
 
 Swagger
 
-- Generate spec: `make swag`
 - Open in browser: start the app, then visit `/swagger/index.html`
-- Install CLI (once): `make swag-install`
