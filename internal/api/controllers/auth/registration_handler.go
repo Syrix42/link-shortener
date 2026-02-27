@@ -7,6 +7,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// Register a new user.
+// @Summary Register a new user
+// @Description Creates a user account with email and password.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Register request"
+// @Success 200 {object} RegisterResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /auth/register [post]
 func (r *Handler) Register(c *fiber.Ctx) error {
 
 	var request RegisterRequest

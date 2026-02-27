@@ -11,8 +11,15 @@ import (
 	"github.com/Syrix42/link-shortener/internal/infra/repositories"
 	AuthService "github.com/Syrix42/link-shortener/internal/services/auth"
 	"github.com/gofiber/fiber/v2"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
+
+	_ "github.com/Syrix42/link-shortener/swagger"
 )
 
+// @title Link Shortener API
+// @version 1.0
+// @description API for user authentication and link-shortening services.
+// @BasePath /api/v1
 func main() {
 
 	// 1 Load configs from .env files from here
@@ -29,10 +36,10 @@ func main() {
 
 	hasher := crypto.NewBcryptHasher()
 	//Repository of Aggregate User if you Intent to use it its already injected
-	Userrepo := repositories.NewUserRepository(db)
+	userRepo := repositories.NewUserRepository(db)
 
-	AuthenticationService := AuthService.NewRegisterService(Userrepo, hasher)
-	AuthenticationHandler := AuthHandler.NewHandler(AuthenticationService)
+	authenticationService := AuthService.NewRegisterService(userRepo, hasher)
+	authenticationHandler := AuthHandler.NewHandler(authenticationService)
 
 	// 4) Create app + routes
 
@@ -41,7 +48,11 @@ func main() {
 	apiGroup := app.Group("/api")
 	v1 := apiGroup.Group("/v1")
 
-	api.AuthRoutes(v1, AuthenticationHandler)
+	api.AuthRoutes(v1, authenticationHandler)
+	app.Get("/swagger", func(c *fiber.Ctx) error {
+		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
+	})
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	appCfg := config.LoadAppConfig()
 	log.Fatal(app.Listen(appCfg.ListenAddr()))

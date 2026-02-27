@@ -1,42 +1,60 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: link_shortener_db_dev
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d link_shortener"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: link_shortener_app_dev
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      APP_PORT: ${APP_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_SSLMODE: ${DB_SSLMODE}
-      JWT_SECRET: ${JWT_SECRET}
-    ports:
-      - "${APP_PORT:-3000}:3000"
-
+    db:
+        image: postgres:16-alpine
+        container_name: link_shortener_db_dev
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        ports:
+            - "${POSTGRES_PORT:-5432}:5432"
+        volumes:
+            - ${POSTGRES_DATA_PATH:-pg_data_dev}:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres -d link_shortener"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - ls
+    app:
+        build:
+            context: ../
+            dockerfile: Dockerfile
+        container_name: link_shortener_app_dev
+        restart: unless-stopped
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            APP_PORT: ${APP_PORT}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_USER: ${DB_USER}
+            DB_PASSWORD: ${DB_PASSWORD}
+            DB_NAME: ${DB_NAME}
+            DB_SSLMODE: ${DB_SSLMODE}
+            JWT_SECRET: ${JWT_SECRET}
+        ports:
+            - "${APP_PORT:-3000}:3000"
+        networks:
+            - ls
+    migrate:
+        image: ghcr.io/kukymbr/goose-docker
+        container_name: link_shortener_migrate_dev
+        environment:
+            - GOOSE_DRIVER=postgres
+            - GOOSE_DBSTRING=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME}
+            - GOOSE_COMMAND=${GOOSE_COMMAND:-}
+            - GOOSE_COMMAND_ARG=${GOOSE_COMMAND_ARG:-}
+        volumes:
+            - ../internal/migrations:/migrations
+        networks:
+            - ls
 volumes:
-  pg_data_dev:
+    pg_data_dev:
+
+networks:
+    ls:
+        driver: bridge
